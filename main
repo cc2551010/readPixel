@@ -1,0 +1,103 @@
+#include <iostream>
+#include <windows.h>
+#include <conio.h>
+#include <time.h>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <winuser.h>
+#include <sstream>
+#include <ctime>
+
+HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+void ShowConsoleCursor(bool showFlag);
+
+int main()
+{
+    HWND console = GetConsoleWindow();
+    RECT rect = { 0, 0, 0, 0 };
+    GetWindowRect(console, &rect);
+    MoveWindow(console, rect.right / 2, rect.bottom / 4, 500, 500, TRUE);
+
+    HDC dc = GetDC(NULL);
+    POINT p;
+    unsigned int r = 0, g = 0, b = 0;
+    char keyboardCharacter = '\0';
+    ShowConsoleCursor(false);
+
+    const int ENTER = 13, ESC = 27,
+        UP = 72, DOWN = 80, LEFT = 75, RIGHT = 77,
+        W = 119, S = 115, A = 97, D = 100,
+        B = 98, R = 114;
+
+    std::cout << "'b' page break"
+        << "\n'ENTER' new line"
+        << "\n'r' restart"
+        << "\n\n";
+
+    while (true && keyboardCharacter != ESC)
+    {
+        while (!_kbhit())
+        {
+            GetCursorPos(&p);
+            r = (unsigned int)GetRValue(GetPixel(dc, p.x, p.y));
+            g = (unsigned int)GetGValue(GetPixel(dc, p.x, p.y));
+            b = (unsigned int)GetBValue(GetPixel(dc, p.x, p.y));
+            std::cout << "POSITION: " << '(' << p.x << ' ' << p.y << ')' << " ";
+            std::cout << "COLOR: " << r << ' ' << g << ' ' << b << "           ";
+            std::cout << '\r';
+        }
+        keyboardCharacter = _getch();
+
+        if (keyboardCharacter == 0 || keyboardCharacter == -32)
+        {
+            keyboardCharacter = _getch();
+        }
+        switch (keyboardCharacter)
+        {
+            case ENTER:
+                std::cout << '\n';
+                break;
+            case UP:
+            case W:
+                SetCursorPos(p.x, p.y - 1);
+                break;
+            case DOWN:
+            case S:
+                SetCursorPos(p.x, p.y + 1);
+                break;
+            case LEFT:
+            case A:
+                SetCursorPos(p.x - 1, p.y);
+                break;
+            case RIGHT:
+            case D:
+                SetCursorPos(p.x + 1, p.y);
+                break;
+            case R:
+                system("cls");
+                std::cout << "'b' page break"
+                    << "\n'ENTER' new line"
+                    << "\n'r' restart"
+                    << "\n\n";
+                break;
+            case B:
+                std::cout << "\n\n";
+                break;
+        }
+    }
+
+    return 0;
+}
+
+void ShowConsoleCursor(bool showFlag)
+{
+    HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_CURSOR_INFO cursorInfo;
+
+    GetConsoleCursorInfo(out, &cursorInfo);
+    cursorInfo.bVisible = showFlag; // set the cursor visibility
+    SetConsoleCursorInfo(out, &cursorInfo);
+}
